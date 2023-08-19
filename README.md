@@ -1,6 +1,6 @@
-# Bifrost API Gateway
+# Bifrost
 
-Welcome to the Bifrost API Gateway, an integral part of the Asgard Project. As the name suggests, Bifrost serves as the bridge to connect you with the diverse array of services offered within the Asgard ecosystem.
+Welcome to the Bifrost, an integral part of the Asgard Project. As the name suggests, Bifrost serves as the bridge to connect you with the diverse array of services offered within the Asgard ecosystem.
 
 ## Features
 
