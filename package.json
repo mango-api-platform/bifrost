@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "commitlint": "^17.6.6",
+    "commitlint-config-git-commit-emoji": "^1.0.0"
+  }
+}
