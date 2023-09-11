@@ -1,0 +1,60 @@
+---
+name: Works After Deployment
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  publish_new_release:
+    name: Publish new release
+    runs-on: ubuntu-20.04
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Generate new version
+        env:
+          release_pr_title: ${{ github.event.pull_request.title }}
+        run: |
+          # release 배포라면 title 에서 배포버전을 추출하고, hotfix 라면 가장 최근 버전의 patch number 을 증가시킨다.
+          shopt -s nocasematch
+          if [[ "${{ env.release_pr_title }}" =~ ^Release/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            updated_version="${BASH_REMATCH[1]}"
+            echo "it's release PR. new version : $updated_version"
+          else
+            echo "it's hotfix PR."
+
+            # creatordate 으로 정렬하여 처음 하나를 가져온다
+            last_version=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags)
+            echo "last version : $last_version"
+
+            # 최근의 태그가 semantic version 형태가 맞는지 확인
+            semantic_version_regex="^[0-9]+\.[0-9]+\.[0-9]+$"
+            if ! [[ $last_version =~ $semantic_version_regex ]]; then
+              echo "last_version is not semantic version"
+              exit 1
+            fi
+
+            last_patch_version=$(echo "$last_version" | grep -Eo '[0-9]+$')
+            updated_patch_version=$((last_patch_version + 1))
+            updated_version=${last_version%"${last_patch_version}"}${updated_patch_version}
+            echo "updated_version : $updated_version"
+          fi
+          echo "updated_version=${updated_version}" >> "$GITHUB_ENV"
+      - name: Publish Release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            await github.rest.repos.createRelease({
+              owner: owner,
+              repo: repo,
+              tag_name: '${{ env.updated_version }}',
+              generate_release_notes: true,
+              target_commitish: '${{ github.event.pull_request.base.ref }}'
+            });
+

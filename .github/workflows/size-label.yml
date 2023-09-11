@@ -1,0 +1,31 @@
+name: size-label
+on:
+  pull_request:
+    types: [ opened ]  # 최초 PR 생성시에만 작동하도록 설정
+    branches-ignore:
+      - master
+jobs:
+  size-label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: codelytv/pr-size-labeler@main
+        with:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          xs_label: 'size/XS'
+          xs_max_size: '10'
+          s_label: 'size/S'
+          s_max_size: '100'
+          m_label: 'size/M'
+          m_max_size: '500'
+          l_label: 'size/L'
+          l_max_size: '1000'
+          xl_label: 'size/XL'
+          fail_if_xl: 'false'
+          message_if_xl: >
+            PR 사이즈가 1000라인을 초과했습니다.
+            가급적 하나의 PR에서는 하나의 작업만을 진행해주세요.
+          files_to_ignore: |
+            "*.lock"
+            "docs/*"
+            "*.md"
+            "**/tests/*"
