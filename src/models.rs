@@ -4,4 +4,5 @@ use serde::{Deserialize, Serialize};
 pub struct RouteInfo {
     pub route: String,
     pub internal_endpoint: String,
+    pub is_auth: bool,
 }

@@ -1,3 +1,4 @@
+use crate::auth::with_auth;
 use crate::models::RouteInfo;
 
 use hyper::Client;
@@ -12,6 +13,20 @@ pub async fn proxy_request(
     body: bytes::Bytes,
 ) -> Result<impl Reply, warp::Rejection> {
     if let Some(target) = target {
+        let api_key = if target.is_auth {
+            if let Some(api_key) = with_auth(&headers) {
+                api_key
+            } else {
+                let response = HttpResponse::builder()
+                    .status(warp::http::StatusCode::UNAUTHORIZED)
+                    .body(hyper::body::Bytes::from_static(b"Unauthorized"))
+                    .unwrap();
+                return Ok(warp::reply::with_header(response, "X-Proxy", "Warp"));
+            }
+        } else {
+            "no-key".to_string()
+        };
+
         let client = Client::new();
 
         let target_uri: String = target.internal_endpoint.clone() + &path;
